@@ -7,7 +7,7 @@
  * You are supposed to modify various parts of this file.
  * The main program should be launched by running MazePlay.main()
  */
-//hi
+
 
 import java.awt.*;
 import javax.swing.*;
