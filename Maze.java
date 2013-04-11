@@ -33,23 +33,23 @@ import java.util.*;
  * @author Sara Sirota, Yuxin David Huang '16, Colgate University
  */
 public class Maze {
-    
+
     /** Name of the program. */
     private final String prog = "MazePlay";
-    
+
     /** Title of the maze. */
     private String title;
-    
+
     /** Number of rows. */
     private int rows;
-    
+
     /** Number of columns. */
     private int cols;
-    
+
     /** The representation of the maze as an int array. */
     private int[][] maze;
-    
-    
+
+
     /**
      * Creates a randomly generated maze of a given size.
      *
@@ -57,31 +57,31 @@ public class Maze {
      * @param   cols           the maze width (horizontal dimension, number of columns)
      */
     public Maze(int rows, int cols) {
-        
+
         title = String.format("rand(%dx%d)", rows, cols);
         this.rows = rows;
         this.cols = cols;
-        
+
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 maze[r][c] = 0;
             }
         }
-        
+
         DisjointSet ds = new DisjointSet(rows * cols);
         Random rd = new Random();
-        
+
         while (ds.count() != 1) {
-            
+
             int row1 = rd.nextInt(rows);
             int col1 = rd.nextInt(cols);
-            
+
             int row2, col2; // adjacent cell to the random cell picked
-            
+
             if (row1 == 0 && col1 == 0) {
-                
+
                 // top left
-                
+
                 // pick a random number between 0 and 1.
                 // if 0, then pick the cell to the right;
                 // if 1, then pick the cell to the bottom.
@@ -93,9 +93,9 @@ public class Maze {
                     col2 = col1;
                 }
             } else if (row1 == 0 && col1 == cols) {
-                
+
                 // top right
-                
+
                 // same way of picking as top left
                 if (rd.nextInt(2) == 0) {
                     row2 = row1;
@@ -105,9 +105,9 @@ public class Maze {
                     col2 = col1;
                 }
             } else if (row1 = rows && col1 == 0) {
-                
+
                 // bottom left
-                
+
                 if (rd.nextInt(2) == 0) {
                     row2 = row1;
                     col2 = col1 + 1;
@@ -116,9 +116,9 @@ public class Maze {
                     col2 = col1;
                 }
             } else if (row1 = rows && col1 == cols) {
-                
+
                 // bottom right
-                
+
                 if (rd.nextInt(2) == 0) {
                     row2 = row1;
                     col2 = col1 - 1;
@@ -127,9 +127,9 @@ public class Maze {
                     col2 = col1;
                 }
             } else if (row1 == 0) {
-                
+
                 // top border but not corner
-                
+
                 // 3 choices:
                 // if 0, then choose left
                 // if 1, then choose bottom
@@ -146,42 +146,45 @@ public class Maze {
                     col2 = col1 + 1;
                 }
             } else if (row1 == rows) {
-                
+
                 // bottom border but not corner
-                
+
             } else if (col1 == 0) {
-                
+
                 // left border but not corner
-                
+
             } else if (col1 == cols) {
-                
+
                 // right border but not corner
 
             } else {
-                
+
                 // inside
-                
+
             }
-            
+
             // finished picking a random wall
-            
+
             // breaking wall:
-            
+
             if (row2 > row1) {
-                if (getRight(row1, col1)) {
-                    setRight(row1, col1, false);
-                    
+                if (getBot(row1, col1) == true) {
+                    setBot(row1, col1, false);
+                    ds.union(row1 * cols + col1, row2 * cols + col2);
                 }
-                
+            } else if (row2 < row1) {
+                // fill
+            } else if (col2 < col1) {
+                // fill
+            } else if (col2 > col1) {
+                // fill
             }
-            
-        }
-        
-        // ------ TO DO: IMPLEMENT ------
-        
+
+        } // end of while
+
     } // end of Maze(int, int)
-    
-    
+
+
     /**
      * Creates a maze object from a file.
      *
@@ -189,23 +192,23 @@ public class Maze {
      * @throws IOException  if an input/output error occurs while trying to read the given input file
      */
     public Maze(String filename) throws IOException {
-        
+
         Scanner scan = null;
-        
+
         try {
             scan = new Scanner(new FileReader(filename));
         } catch (IOException e) {
             throw new IOException(prog + ": error opening filename " + filename);
         }
-        
-        
+
+
         if (!scan.hasNextLine())
             throw new IOException(prog + ": file " + filename + " is empty");
-        
+
         String[] line = scan.nextLine().split("\\s+");
         if (line.length < 3 || !(line[0].equals("maze")))
             throw new IOException(prog + ": " + filename + " is not a maze");
-        
+
         int w = 0, h = 0;
         try {
             w = Integer.parseInt(line[1]);
@@ -215,40 +218,40 @@ public class Maze {
         } catch (NumberFormatException e) {
             throw new IOException(prog + ": " + filename + " contains a maze with illegal dimension(s)");
         }
-        
+
         this.rows = h;
         this.cols = w;
-        
+
         for (int i = 0; i < w * h; i++) {
-            
+
             int col = i%w, row = i/w;
-            
+
             if (!scan.hasNextLine())
                 throw new IOException(prog + ": " + filename + " missing cell descriptions starting at [" + row + "," + col + "]");
-            
+
             String cell[] = scan.nextLine().split("\\s+");
             if (cell.length < 2)
                 throw new IOException(prog + ": " + filename + " contains bad description for cell[" + row + "," + col + "]");
-            
+
             boolean r, b;
-            
+
             try {
                 r = (Integer.parseInt(cell[0]) != 0) ? true : false;
                 b = (Integer.parseInt(cell[1]) != 0) ? true : false;
             } catch (NumberFormatException e) {
                 throw new IOException(prog + ": " + filename + " contains bad description for cell[" + row + "," + col + "]");
             }
-            
+
             setRight(row, col, r);
             setBot(row, col, b);
-            
+
         } // end of for
-        
+
         title = filename;
-        
+
     } // end of Maze(String)
 
-    
+
     /**
      * Returns the width of the maze.
      *
@@ -257,8 +260,8 @@ public class Maze {
     public int width() {
         return cols;
     } // end of width()
-    
-    
+
+
     /**
      * Returns the height of the maze.
      *
@@ -267,8 +270,8 @@ public class Maze {
     public int height() {
         return rows;
     } // end of height()
-    
-    
+
+
     /**
      * Gets the title of the maze, used in the window's title bar.
      *
@@ -277,11 +280,11 @@ public class Maze {
     public String title() {
         return title;
     } // end of title();
- 
-    
+
+
     /**
      * Indicates whether or not a cell's right wall is present in the maze.
-     * 
+     *
      * @param   row   row number (vertical coordinate) of the cell whose properties are being examined
      * @param   col   column number (horizontal coordinate) of the cell whose properties are being examined
      * @return  <code>true</code> if the right wall of the cell is present in the maze,
@@ -290,15 +293,15 @@ public class Maze {
      *                      <code>col &gt; = width</code>, or <code>row &gt;= height</code>
      */
     public boolean getRight(int row, int col) throws IndexOutOfBoundsException {
-        
+
         return maze[row][col] == 2 || maze[row][col] == 3;
-    
+
     } // end of getRight(int, int)
 
-    
+
     /**
      * Indicates whether or not a cell's bottom wall is present in the maze.
-     * 
+     *
      * @param   row   row number (vertical coordinate) of the cell whose properties are being examined
      * @param   col   column number (horizontal coordinate) of the cell whose properties are being examined
      * @return  <code>true</code> if the bottom wall of the cell is present in the maze,
@@ -307,15 +310,15 @@ public class Maze {
      *                      <code>col &gt; = width</code>, or <code>row &gt;= height</code>
      */
     public boolean getBot(int row, int col) throws IndexOutOfBoundsException {
-        
+
         return maze[row][col] == 1 || maze[row][col] == 3;
-        
+
     } // end of getBot(int, int)
- 
-    
+
+
     /**
      * Sets whether or not the right wall of a maze cell exists.
-     * 
+     *
      * @param   row   row number (vertical coordinate) of the cell whose properties are being changed
      * @param   col   column number (horizontal coordinate) of the cell whose properties are being changed
      * @param   b   <code>true</code> if the right wall should exist, <code>false</code> if it should not exist
@@ -323,7 +326,7 @@ public class Maze {
      *                      <code>col &gt; = width</code>, or <code>row &gt;= height</code>
      */
     public void setRight(int row, int col, boolean b) throws IndexOutOfBoundsException {
-        
+
         if (b) {
             if (maze[row][col] == 0 || maze[row][col] == 1) {
                 maze[row][col] += 2;
@@ -333,13 +336,13 @@ public class Maze {
                 maze[row][col] -= 2;
             }
         }
-    
+
     } // end of setRight(int, int, boolean)
-    
-    
+
+
     /**
      * Sets whether or not the bottom wall of a maze cell exists.
-     * 
+     *
      * @param   row   row number (vertical coordinate) of the cell whose properties are being changed
      * @param   col   column number (horizontal coordinate) of the cell whose properties are being changed
      * @param   b   <code>true</code> if the bottom wall should exist, <code>false</code> if it should not exist
@@ -357,10 +360,10 @@ public class Maze {
                 maze[row][col]--;
             }
         }
-        
+
     } // end of setBot(int, int, boolean)
-    
-    
+
+
     /**
      * Runs a depth-first search to explore the maze, starting at the top-left cell (row 0, column 0).
      *
@@ -369,35 +372,96 @@ public class Maze {
      * You should use the <code>setState()</code> function of <code>MazePlay</code> to keep track of where your solver is going during its exploration.
      * This method is also hooked into the thread-control mechanism that keeps the solver running.
      *
-     * 
+     *
      * @param   player          A reference to the MazePlay object that represents the GUI displaying the maze
      * @throws ThreadDeath  if the player window gets closed during execution of the search
      */
     public void solve(MazePlay player) throws ThreadDeath {
-        
-        // ------ TO DO: IMPLEMENT ------
-        
+
+        int currRow = 0;
+        int currCol = 0;
+        player.setState(currRow, currCol, MazePlay.F);
+
+        while (!(currRow == rows - 1 && currCol == cols - 1)) {
+
+            if (getBot(currRow, currCol) == true) {
+
+            }
+
+        }
+
     } // end of solve(MazePlay)
-    
-    
+
+
+    private void recursiveSolveHelper(int row, int col, MazePlay player) {
+    	player.setState(row, col, MazePlay.F);
+        if (row == rows - 1 && col == cols - 1) {
+        	return;
+        } else {
+        	if (row == 0 && col == 0) {
+
+                // top left
+
+                if (getRight(row, col)) {
+                	recursiveSolveHelper(row, col + 1, player)
+                }
+
+            } else if (row == 0 && col == cols) {
+
+                // top right
+
+            } else if (row = rows && col == 0) {
+
+                // bottom left
+
+            } else if (row = rows && col == cols) {
+
+                // bottom right
+
+            } else if (row == 0) {
+
+                // top border but not corner
+
+            } else if (row == rows) {
+
+                // bottom border but not corner
+
+            } else if (col == 0) {
+
+                // left border but not corner
+
+            } else if (col == cols) {
+
+                // right border but not corner
+
+            } else {
+
+                // inside
+
+            }
+        }
+
+    }
+
+
     /**
      * Saves a maze object to a file.
      * <p>
      * <b>This method has already been implemented.</b>
      *
-     * 
+     *
      * @param   filename  The file in which to store the maze.  If the file exists, it will be overwritten.
      * @throws IOException  if an error occurs while trying to write the maze to file
      */
     public void save(String filename) throws IOException {
-        
+
         PrintWriter pw = new PrintWriter(filename);
-        
+
         int w = width();
         int h = height();
-        
+
         pw.printf("maze %d %d%n", w, h);
-        
+
         for (int row = 0; row < h; row++) {
             for (int col = 0; col < w; col++) {
                 try {
@@ -414,9 +478,9 @@ public class Maze {
             }
         }
         pw.close();
-        
+
         title += String.format(":%s", filename);
-        
+
     } // end of save(String)
-    
+
 } // end of Maze
